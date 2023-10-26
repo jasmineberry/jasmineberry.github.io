@@ -1,0 +1,218 @@
+<html>
+  <head>
+    <title>Assignment 4</title>
+ 
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+  </head>
+
+  <body>
+    <h1 style="color: red">Assignment A4</h1>
+    <p><em>September 19, 2018</em></p>
+    
+    <hr>
+    <h2>Explanation of Exercise</h2>
+    <p>
+      This assignment will showcase Rural Population (% of total population) data for 20 countries and for the year 1990. The countries include Australia, Afghanistan, Brazil,
+      Nigeria, United States, Colombia, Canada, Saudi Arabia, Puerto Rico, Mali, Haiti, Spain, Japan, Lithuania, Israel, France, Dominican Republic
+      Cuba, United Arab Emirates, and Malaysia. With D3 Data join, the following charts were created. 
+    </p>
+
+    <p>
+      This assignment will use D3 data join and Load data from a CSV file.  
+    </p>
+
+
+
+  <ol>
+    <li><h2>HTML Table</h2></li>
+    <table style="border: 4px solid black ; background: pink; border-collapse:collapse; vertical-align: middle" id="table1"> </table> 
+    <script>       
+        d3.csv("RuralData.csv").then(function(data) {
+          var table = d3.select("#table1").append("table");
+          var thead = table.append("thead");
+          var tbody = table.append("tbody");
+          
+          
+          var columns = ["Country", "Abbreviation", "Percent"]
+          
+          thead.append('tr')
+          .selectAll('th')
+            .data(columns)
+            .enter()
+            .append('th')
+            .style('border', '0px solid black')
+            .text(function(d) { return d; })
+            .style('font-weight', function(d, i) {
+              return (i == 0 || i==1 || i==2) ? 'bold' : 'normal';})
+
+
+
+        var rows = tbody.selectAll('tr')
+          .data(data)
+          .enter()
+          .append('tr')
+          
+          
+
+        var cells = rows.selectAll('td')
+          .data(function(row) { 
+            return columns.map(function(column){
+              return{
+                column: column,
+                value: row[column]
+            };
+          });
+        })
+          .enter()
+          .append('td')
+          .style('border', '0px solid black')
+          .text(function(d) { return d.value; });
+          });
+
+
+
+
+
+    </script>
+
+    <li><h2>SVG Bar Chart</h2></li>
+    <svg width="860px" height="110px" style="background-color: darkgrey" id="chart1"></svg>
+    <script>       
+        d3.csv("RuralData.csv").then(function(data) {
+        
+          var svg = d3.select('#chart1');
+
+          var yScale = d3.scaleLinear()
+            .domain([0, 100]) // input 
+            .range([100, 0]); // output
+
+          svg.selectAll ('rect')
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr('x', function (d, i) { return i * 42 + 30; })
+            .attr('y', function (d) { return 110 - d.Percent; })
+            .attr('width', function (d) { return 35; })
+            .attr('height', function (d) { return d.Percent; })
+            .attr('fill', function (d) { return "blue";});
+
+          svg.selectAll('text')
+            .data(data)
+            .enter()
+            .append('text')
+            .attr('x', function (d, i) { return i * 42 +30; })
+            .attr('y', function (d) { return 75; })
+            .attr('font-size', '16px')
+            .attr('fill', 'white')
+            .text(function (d) { return d.Abbreviation; })
+
+
+            svg.append("g")
+              .attr("class", "y axis")
+              .attr("transform", "translate(25,10)")
+              .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft
+        });
+    </script>       
+
+    <li><h2>SVG Scatterplot</h2></li>
+    <svg width="800px" height="400px" style="background-color: darkgrey" id="chart2"></svg>
+    <script>
+      d3.csv("RuralData.csv").then(function(data) {
+
+      var svg = d3.select("#chart2");
+      var color = d3.scaleOrdinal(d3.schemeDark2);
+
+      svg.selectAll('circle')
+          .data(data)
+          .enter()
+          .append('circle')
+          .attr('cx', function (d,i) { return 9 * d.Percent; })
+          .attr('cy', function (d, i) { return d.y; })
+          .attr('r', function (d) { return 20; })
+          .attr('fill', function (d,i) { return color(i); })    
+                            
+      var xScale = d3.scaleLinear()
+              .domain([0, 100]) // input
+              .range([0, 800]); // output
+      
+     // var xAxis = d3.svg.axis().scale(x);
+        
+
+
+      svg.selectAll('text')
+            .data(data)
+            .enter()
+            .append('text')
+            .attr('x', function (d) { return 9 * d.Percent; })
+            .attr('y', function (d) { return d.y; })
+            .attr('fill', 'white')
+            .attr('font-size', '18px')
+            .attr('text-anchor', 'middle')
+            .attr('alignment-baseline', 'middle')
+            .text(function (d) { return d.Abbreviation; })
+
+
+              // 3. Call the x axis in a group tag
+      svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0,380)")
+        .call(d3.axisBottom(xScale)) // Create an axis component with d3.axisBottom       
+
+      });
+
+    </script>
+    <li><h2>SVG Bubble Chart</h2></li>
+
+    <svg width="800px" height="400px" style="background-color: darkgrey" id="chart3"></svg>
+    <script>
+
+
+      d3.csv("RuralData.csv").then(function(data) {
+
+
+      var svg = d3.select("#chart3");
+      var color = d3.scaleOrdinal(d3.schemeSet3);
+
+
+
+      var nodes = d3.hierarchy(data)
+            .sum(function(d) { return d.Percent; });
+      
+      svg.selectAll(".node")
+          .data(data)
+          .enter()
+          .append('circle')
+          .attr('cx', function (d,i) { return d.x; })
+          .attr('cy', function (d, i) { return d.y; })
+          .attr('r', function (d) { return d.Percent; })
+          .attr('fill', function (d,i) { return color(i); }) 
+   
+
+          svg.selectAll('text')
+            .data(data)
+            .enter()
+            .append('text')
+            .attr('x', function (d,i) { return d.x; })
+            .attr('y', function (d,i) { return d.y; })
+            .attr('fill', 'black')
+            .attr('font-size', function(d){
+                return (d.Percent < 23 ) ? 11 : d.Percent/3;
+              
+              
+              
+              })
+            .attr('text-anchor', 'middle')
+            .attr('alignment-baseline', 'middle')
+            .text(function (d) { return d.Abbreviation + " "+ d.Percent + "%"; })
+      });
+
+      </script>
+  </ol>
+
+  </body>
+  
+  
+
+</html>
+
